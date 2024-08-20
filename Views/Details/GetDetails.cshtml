@@ -1,0 +1,188 @@
+﻿@model List<task5.Models.Details>
+
+@{
+    ViewBag.Title = "GetDetails";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+    <script src="~/Scripts/jquery-3.7.1.js"></script>
+    <link href="~/Content/StyleSheet1.css" rel="stylesheet" />
+
+    <script src="~/Scripts/umd/popper.js"></script>
+    <script src="~/Scripts/bootstrap.js"></script>
+}
+
+<h2>GetDetails</h2>
+@Html.ActionLink("Create", "Index")
+
+@TempData["Success"]
+
+@using (Html.BeginForm("GetDetails", "Details", FormMethod.Get))
+{
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-lg-4 mx-auto">
+                <div class="form-group">
+                    <label for="searchName">Search by Name:</label>
+                    <input type="text" class="form-control" id="searchName" name="searchstring" placeholder="Enter name">
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <h2>Details</h2>
+
+    <div class="state-container">
+        @foreach (var state in ViewBag.States)
+        {
+            <label class="state-label">
+                <input type="checkbox" class="state-checkbox" value="@state.StateName" /> @state.StateName
+            </label>
+            <div class="city-container" id="cities-@state.StateName" style="display:none; margin-left: 20px;">
+                <!-- Cities will be populated here -->
+            </div>
+        }
+    </div>
+
+    <div class="container mt-4">
+        <table class="table table-bordered table-striped" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>State</th>
+                    <th>City</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.Name</td>
+                        <td>@user.Email</td>
+                        <td>@user.Mobile</td>
+                        <td>@user.StateName</td>
+                        <td>@user.CityName</td>
+                        <td>
+                            <a href="@Url.Action("Edit", new { id = @user.Id })" class="btn btn-warning btn-sm" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(@user.Id)">
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+
+
+        </table>
+        <div class="pagination-container">
+            <div class="pagination">
+                @if (ViewBag.TotalPages % 2 == 0)
+                {
+                    for (int i = 1; i <= ((ViewBag.TotalPages + ViewBag.PageSize - 1) / ViewBag.PageSize)+3 ; i++)
+                    {
+                        <a href="@Url.Action("GetDetails", new { pageNumber = i, pageSize = ViewBag.PageSize })">@i</a>
+                    }
+                }
+                else {
+                for (int i = 1; i <= ((ViewBag.TotalPages + ViewBag.PageSize - 1) / ViewBag.PageSize) + 3; i++)
+                {
+                <a href="@Url.Action("GetDetails", new { pageNumber = i, pageSize = ViewBag.PageSize })">@i</a>
+                }
+
+
+                }
+            </div>
+        </div>
+    </div>
+        
+      
+      }  
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script type="text/javascript">
+    $(document).ready(function () {
+        $('.state-checkbox').on('change', function () {
+            var selectedState = $(this).val();
+            var isChecked = $(this).is(':checked');
+
+
+            $('.state-checkbox').not(this).prop('disabled', isChecked);
+            $('.state-label').not($(this).closest('.state-label')).css('opacity', isChecked ? 0.5 : 1);
+
+
+            if (isChecked) {
+                $.ajax({
+                    url: '@Url.Action("GetCitiesByState", "Details")',
+                    type: 'GET',
+                    data: { StateName: selectedState },
+                    success: function (data) {
+                        var cityContainer = $('#cities-' + selectedState);
+                        cityContainer.empty();
+                        $.each(data, function (index, city) {
+                            cityContainer.append(
+                                '<label>' +
+                                    '<input type="checkbox" class="city-checkbox" value="' + city.CityName + '" /> ' + city.CityName +
+                                '</label><br />'
+                            );
+                        });
+                        cityContainer.show();
+                    },
+                    error: function (xhr, status, error) {
+                        alert("An error occurred: " + error);
+                    }
+                });
+            } else {
+                $('#cities-' + selectedState).hide();
+
+                $('.state-checkbox').prop('disabled', false);
+                $('.state-label').css('opacity', 1);
+            }
+        });
+    });
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            function confirmDelete(Id) {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+
+
+                        $.ajax({
+                            url: '/Details/Delete',
+                            type: 'POST',
+                            data: { Id: Id },
+                            success: function (response) {
+                                alert("success")
+                                Swal.fire('SUCCESS!', 'There was a problem deleting the user.', 'error');
+
+                            },
+                            error: function (xhr, status, error) {
+
+                                Swal.fire('success!', 'There was a problem deleting the user.', 'error');
+                            }
+                        });
+                    }
+                });
+            }
+
+
+        </script>
+<script>
+
+</script>

@@ -1,0 +1,101 @@
+﻿@model task5.Models.Details
+
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+}
+
+<h2>Edit</h2>
+@using (Html.BeginForm("Edit", "Details", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+   // @Html.HiddenFor("pageNumber", ViewBag.CurrentPage)
+    @Html.HiddenFor(m=>m.pagenumber)
+    <div class="form-horizontal">
+        @Html.AntiForgeryToken()
+        <table>
+
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.Name, new { @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+                </td>
+                <td>
+                    @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.Email, new { @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+                </td>
+                <td>
+                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.Mobile, new { @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.TextBoxFor(m => m.Mobile, new { @class = "form-control" })
+                </td>
+                <td>
+                    @Html.ValidationMessageFor(m => m.Mobile, "", new { @class = "text-danger" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.StateId, new { @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.DropDownList("StateId", (SelectList)ViewBag.States, "Select State", new { @class = "form-control", id = "stateDropdown" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.CityId, new { @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.DropDownList("CityId", (SelectList)ViewBag.Cities, "Select City", new { @class = "form-control", id = "cityDropdown" })
+                </td>
+            </tr>
+        </table>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Update" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+<script src="~/Scripts/jquery-3.7.1.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#stateDropdown').change(function () {
+            var stateId = $(this).val();
+            if (stateId) {
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("GetCitiesByStateId", "Details")',
+                    data: { StateId: stateId },
+                    success: function (cities) {
+                        $('#cityDropdown').empty();
+                        $('#cityDropdown').append($('<option>').text('Select City').attr('value', ''));
+                        $.each(cities, function (i, city) {
+                            $('#cityDropdown').append($('<option>').text(city.CityName).attr('value', city.CityId));
+                        });
+                    },
+                    error: function () {
+                        alert('Failed to load cities.');
+                    }
+                });
+            } else {
+                $('#cityDropdown').empty();
+                $('#cityDropdown').append($('<option>').text('Select City').attr('value', ''));
+            }
+        });
+    });
+</script>

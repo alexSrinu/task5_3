@@ -1,0 +1,126 @@
+﻿@model task5.Models.Details
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+@using (Html.BeginForm("Index", "Details", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <div class="form-horizontal">
+        <h4>Create</h4>
+
+        @Html.AntiForgeryToken()
+        <table>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.Name, new { @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+                </td>
+                <td>
+                    @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.Email, new { @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+                </td>
+                <td>
+                    @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.Mobile, new { @class = "control-label col-md-2" })
+                </td>
+                <td>
+                    @Html.TextBoxFor(m => m.Mobile, new { @class = "form-control" })
+                </td>
+                <td>
+                    @Html.ValidationMessageFor(m => m.Mobile, "", new { @class = "text-danger" })
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.StateId)
+                </td>
+                <td>
+                    <select name="StateId" id="stateDropdown" class="form-control">
+                        <option value="">Select State</option>
+                        @foreach (var state in (SelectList)ViewBag.States)
+                        {
+                            <option value="@state.Value" @(Model.StateId == Convert.ToInt32(state.Value) ? "selected" : "")>@state.Text</option>
+                        }
+
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.CityId)
+                </td>
+                <td>
+                    <select name="CityId" id="cityDropdown" class="form-control">
+                        <option value="">Select City</option>
+                        @foreach (var city in (SelectList)ViewBag.Cities)
+                        {
+                            <option value="@city.Value" @(Model.CityId == Convert.ToInt32(city.Value) ? "selected" : "")>@city.Text</option>
+                        }
+                    </select>
+
+
+                </td>
+            </tr>
+        </table>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+
+<script src="~/Scripts/jquery-3.7.1.js"></script>
+<script src="~/Scripts/umd/popper.js"></script>
+<script src="~/Scripts/bootstrap.js"></script>
+<script>
+        $(document).ready(function () {
+            alert("success");
+            $('#stateDropdown').change(function () {
+                alert("success");
+            var stateId = $(this).val();
+            if (stateId) {
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("GetCitiesByStateId", "Details")',
+                    data: { StateId: stateId },
+                    success: function (cities) {
+                        $('#cityDropdown').empty();
+                        $('#cityDropdown').append($('<option>').text('Select City').attr('value', ''));
+                        $.each(cities, function (i, city) {
+                            $('#cityDropdown').append($('<option>').text(city.CityName).attr('value', city.CityId));
+                        });
+                    },
+                    error: function () {
+                        alert('Failed to load cities.');
+                    }
+                });
+            } else {
+                $('#cityDropdown').empty();
+                $('#cityDropdown').append($('<option>').text('Select City').attr('value', ''));
+            }
+        });
+    });
+</script>
+
+
+
+
+

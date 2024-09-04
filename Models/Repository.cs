@@ -23,6 +23,7 @@ namespace task5.Models
             cmd.Parameters.AddWithValue("@Email", r.Email);
             cmd.Parameters.AddWithValue("@StateId", r.StateId);
             cmd.Parameters.AddWithValue("@CityId", r.CityId);
+            cmd.Parameters.AddWithValue("@CreatedOn", r.CreatedOn);
             //cmd.Parameters.AddWithValue("@StateName", r.StateName);
             //cmd.Parameters.AddWithValue("@CityName", r.CityName);
 
@@ -55,7 +56,8 @@ namespace task5.Models
                     Email = Convert.ToString(dr["Email"]),
 
                     CityName = Convert.ToString(dr["CityName"]),
-                    StateName = Convert.ToString(dr["StateName"])
+                    StateName = Convert.ToString(dr["StateName"]),
+                    CreatedOn = Convert.ToDateTime(dr["CretedOn"])
 
 
                 }); ;
@@ -85,16 +87,43 @@ namespace task5.Models
                     Email = Convert.ToString(dr["Email"]),
 
                     CityName = Convert.ToString(dr["CityName"]),
-                    StateName = Convert.ToString(dr["StateName"])
+                    StateName = Convert.ToString(dr["StateName"]),
+                    CreatedOn = Convert.ToDateTime(dr["CretedOn"])
 
 
                 }); ;
             }
             return obj;
         }
-        public List<City> GetCitiesByState(string stateName)
+        /*  public List<City> GetCitiesByState(string stateName)
+          {
+              List<City> cities = new List<City>();
+
+              using (SqlCommand cmd = new SqlCommand("PROC_CHECKBOX5", con))
+              {
+                  cmd.CommandType = CommandType.StoredProcedure;
+                  cmd.Parameters.AddWithValue("@StateName", stateName);
+
+                  SqlDataAdapter da = new SqlDataAdapter(cmd);
+                  DataTable dt = new DataTable();
+                  con.Open();
+                  da.Fill(dt);
+                  con.Close();
+
+                  foreach (DataRow dr in dt.Rows)
+                  {
+                      cities.Add(new City
+                      {
+                          CityName = Convert.ToString(dr["CityName"])
+                      });
+                  }
+              }
+
+              return cities;
+          }*/
+        public List<string> GetCitiesByState(string stateName)
         {
-            List<City> cities = new List<City>();
+            List<string> cities = new List<string>(); // Change to List<string>
 
             using (SqlCommand cmd = new SqlCommand("PROC_CHECKBOX5", con))
             {
@@ -109,14 +138,11 @@ namespace task5.Models
 
                 foreach (DataRow dr in dt.Rows)
                 {
-                    cities.Add(new City
-                    {
-                        CityName = Convert.ToString(dr["CityName"])
-                    });
+                    cities.Add(Convert.ToString(dr["CityName"])); // Add city names directly
                 }
             }
 
-            return cities;
+            return cities; // Return List<string> directly
         }
         public List<Details> GetDetails3(string statename)
         {
@@ -141,35 +167,110 @@ namespace task5.Models
                     Email = Convert.ToString(dr["Email"]),
 
                     CityName = Convert.ToString(dr["CityName"]),
-                    StateName = Convert.ToString(dr["StateName"])
+                    StateName = Convert.ToString(dr["StateName"]),
+                    CreatedOn = Convert.ToDateTime(dr["CretedOn"])
 
 
                 }); ;
             }
             return obj;
         }
+        public List<Details> GetDetails4(string statename)
+        {
+            List<Details> obj = new List<Details>();
+
+            SqlCommand cmd = new SqlCommand("PROC_CHECKBOX2", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@StateName", statename);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            con.Open();
+            da.Fill(dt);
+            con.Close();
+            foreach (DataRow dr in dt.Rows)
+            {
+                obj.Add(new Details
+                {
+                    Id = Convert.ToInt32(dr["Id"]),
+                    Name = Convert.ToString(dr["Name"]),
+                    Mobile = Convert.ToString(dr["Mobile"]),
+                    Email = Convert.ToString(dr["Email"]),
+
+                    CityName = Convert.ToString(dr["CityName"]),
+                    StateName = Convert.ToString(dr["StateName"]),
+                    CreatedOn = Convert.ToDateTime(dr["CretedOn"])
 
 
+                }); ;
+            }
+            return obj;
+        }
+        public List<Details> GetDetailsCities(string cityNames)
+        {
+            List<Details> obj = new List<Details>();
 
+            SqlCommand cmd = new SqlCommand("GetDetailsByCities", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@CityNames", cityNames);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            con.Open();
+            da.Fill(dt);
+            con.Close();
+            foreach (DataRow dr in dt.Rows)
+            {
+                obj.Add(new Details
+                {
+                    Id = Convert.ToInt32(dr["TaskId"]),
+                    Name = Convert.ToString(dr["Name"]),
+                    Mobile = Convert.ToString(dr["Mobile"]),
+                    Email = Convert.ToString(dr["Email"]),
+
+                    CityName = Convert.ToString(dr["CityName"]),
+                    StateName = Convert.ToString(dr["StateName"]),
+                    CreatedOn = Convert.ToDateTime(dr["CretedOn"])
+
+
+                }); ;
+            }
+            return obj;
+        }
         public List<State> GetStates()
         {
             List<State> states = new List<State>();
-            con.Open();
-            string query = "SELECT * FROM State";
-            SqlCommand cmd = new SqlCommand(query, con);
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
+
+          
+            string connectionString = ConfigurationManager.ConnectionStrings["cs"].ConnectionString;
+
+            
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                states.Add(new State
+                con.Open();
+                string query = "SELECT * FROM State";
+
+                using (SqlCommand cmd = new SqlCommand(query, con))
                 {
-                    StateId = reader["StateId"] != DBNull.Value ? Convert.ToInt32(reader["StateId"]) : 0,
-                    StateName = reader["StateName"].ToString()
-                });
-            }
-            con.Close();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            states.Add(new State
+                            {
+                                StateId = reader["StateId"] != DBNull.Value ? Convert.ToInt32(reader["StateId"]) : 0,
+                                StateName = reader["StateName"].ToString()
+                            });
+                        }
+                    }
+                }
+            } 
+
             return states;
         }
 
+
+     
         public List<City> GetCities(int stateId)
         {
             List<City> cities = new List<City>();
@@ -217,7 +318,8 @@ namespace task5.Models
 
                     StateId = Convert.ToInt32(dr["StateId"]),
                     CityName = Convert.ToString(dr["CityName"]),
-                    StateName = Convert.ToString(dr["StateName"])
+                    StateName = Convert.ToString(dr["StateName"]),
+                    CreatedOn = Convert.ToDateTime(dr["CretedOn"])
 
                 }); ;
             }
@@ -244,12 +346,13 @@ namespace task5.Models
                     Name = Convert.ToString(dr["Name"]),
                     Mobile = Convert.ToString(dr["Mobile"]),
                     Email = Convert.ToString(dr["Email"]),
-                  //  CityId = Convert.ToInt32(dr["CityId"]),
+                    CityId = Convert.ToInt32(dr["CityId"]),
 
-                  //  StateId = Convert.ToInt32(dr["StateId"]),
+                    StateId = Convert.ToInt32(dr["StateId"]),
 
                     CityName = Convert.ToString(dr["CityName"]),
-                    StateName = Convert.ToString(dr["StateName"])
+                    StateName = Convert.ToString(dr["StateName"]),
+                     
 
                 }); ;
             }
@@ -282,47 +385,97 @@ namespace task5.Models
             cmd.ExecuteNonQuery();
             con.Close();
         }
-        public List<Details> GetPagedData(int pageSize, int pageNumber, out int totalCount)
+        public List<Details> GetPagedData(int pageSize, int pageNumber, string searchTerm, string cityNames, DateTime? startDate, DateTime? endDate, out int totalCount)
         {
             List<Details> obj1 = new List<Details>();
-            SqlCommand cmd = new SqlCommand("PageTask", con);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@PageSize", pageSize);
-            cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
 
-         
-            SqlParameter totalCountParam = new SqlParameter("@TotalCount", SqlDbType.Int);
-            totalCountParam.Direction = ParameterDirection.Output;
-            cmd.Parameters.Add(totalCountParam);
-
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            DataTable dt = new DataTable();
-            con.Open();
-            da.Fill(dt);
-
-          
-            totalCount = (int)cmd.Parameters["@TotalCount"].Value;
-            con.Close();
-
-            foreach (DataRow dr in dt.Rows)
+            using (SqlCommand cmd = new SqlCommand("PageTask", con))
             {
-                obj1.Add(new Details
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+                cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+
+                SqlParameter totalCountParam = new SqlParameter("@TotalCount", SqlDbType.Int);
+                totalCountParam.Direction = ParameterDirection.Output;
+                cmd.Parameters.Add(totalCountParam);
+
+                cmd.Parameters.AddWithValue("@SearchTerm", string.IsNullOrEmpty(searchTerm) ? (object)DBNull.Value : searchTerm);
+                cmd.Parameters.AddWithValue("@CityNames", string.IsNullOrEmpty(cityNames) ? (object)DBNull.Value : cityNames);
+                cmd.Parameters.AddWithValue("@StartDate", startDate.HasValue ? (object)startDate.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@EndDate", endDate.HasValue ? (object)endDate.Value : DBNull.Value);
+
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                DataTable dt = new DataTable();
+                con.Open();
+                da.Fill(dt);
+                con.Close(); 
+
+                totalCount = (int)cmd.Parameters["@TotalCount"].Value;
+
+                foreach (DataRow dr in dt.Rows)
                 {
-                    Id = Convert.ToInt32(dr["TaskId"]),
-                    Name = Convert.ToString(dr["Name"]),
-                    Mobile = Convert.ToString(dr["Mobile"]),
-                    Email = Convert.ToString(dr["Email"]),
-                    CityId = Convert.ToInt32(dr["CityId"]),
-
-                    StateId = Convert.ToInt32(dr["StateId"]),
-
-                    CityName = Convert.ToString(dr["CityName"]),
-                    StateName = Convert.ToString(dr["StateName"])
-
-                });
+                    obj1.Add(new Details
+                    {
+                        Id = Convert.ToInt32(dr["TaskId"]),
+                        Name = Convert.ToString(dr["Name"]),
+                        Mobile = Convert.ToString(dr["Mobile"]),
+                        Email = Convert.ToString(dr["Email"]),
+                        CityId = Convert.ToInt32(dr["CityId"]),
+                        StateId = Convert.ToInt32(dr["StateId"]),
+                        CityName = Convert.ToString(dr["CityName"]),
+                        StateName = Convert.ToString(dr["StateName"]),
+                        CreatedOn = Convert.IsDBNull(dr["CreatedOn"]) ? DateTime.MinValue : Convert.ToDateTime(dr["CreatedOn"])
+                    });
+                }
             }
+
             return obj1;
         }
+
+          public List<Details> GetPagedData1(int pageSize, int pageNumber,  out int totalCount)
+           {
+               List<Details> obj1 = new List<Details>();
+
+               using (SqlCommand cmd = new SqlCommand("PageTask1", con))
+               {
+                   cmd.CommandType = CommandType.StoredProcedure;
+                   cmd.Parameters.AddWithValue("@PageSize", pageSize);
+                   cmd.Parameters.AddWithValue("@PageNumber", pageNumber);
+
+                   SqlParameter totalCountParam = new SqlParameter("@TotalCount", SqlDbType.Int);
+                   totalCountParam.Direction = ParameterDirection.Output;
+                   cmd.Parameters.Add(totalCountParam);
+
+              
+
+                   SqlDataAdapter da = new SqlDataAdapter(cmd);
+                   DataTable dt = new DataTable();
+                   con.Open();
+                   da.Fill(dt);
+                   totalCount = (int)cmd.Parameters["@TotalCount"].Value;
+
+                   foreach (DataRow dr in dt.Rows)
+                   {
+                       obj1.Add(new Details
+                       {
+                           Id = Convert.ToInt32(dr["TaskId"]),
+                           Name = Convert.ToString(dr["Name"]),
+                           Mobile = Convert.ToString(dr["Mobile"]),
+                           Email = Convert.ToString(dr["Email"]),
+                           CityId = Convert.ToInt32(dr["CityId"]),
+                           StateId = Convert.ToInt32(dr["StateId"]),
+                           CityName = Convert.ToString(dr["CityName"]),
+                           StateName = Convert.ToString(dr["StateName"]),
+
+                          // CreatedOn = Convert.IsDBNull(dr["CreatedOn"]) ? DateTime.MinValue : Convert.ToDateTime(dr["CreatedOn"]) 
+                       });
+                   }
+               }
+
+               return obj1;
+           }
+
+
 
     }
 

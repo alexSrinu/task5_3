@@ -31,6 +31,21 @@ namespace task5.Models
         public int pagenumber { get; set; }
         public int TotalCount { get; set; }
         public int TotalPages { get; set; }
+        public class StateCityGroup
+        {
+            public string StateName { get; set; }
+            public List<string> Cities { get; set; }
+        }
+        public MyClass MyClassInstance { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+        public class PaginatedResult
+        {
+            public IEnumerable<Details> Det { get; set; }
+            public int TotalPages { get; set; }
+            public int PageSize { get; set; }
+            public int TotalCount { get; set; }
+            public int CurrentPage { get; set; }
+        }
 
     }
 }

@@ -5,11 +5,14 @@
     border: 1px solid white;
     border-collapse: collapse;
 }
+div {
+    width: 300px;
+    margin: auto;
+}
 
 th, td {
     background-color: #96D4D4;
 }
-<style >
 .custom-form-container {
     max-width: 400px; /* Adjust the maximum width as needed */
     margin: 0 auto; /* Centers the container horizontally */
@@ -53,3 +56,28 @@ th, td {
         .pagination a:hover:not(.active) {
             background-color: #ddd;
         }
+.container {
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Space between the items */
+    margin-top: 20px; /* Space above the containers */
+}
+
+.grid-container {
+    flex: 1; /* Allow grid container to grow */
+    margin-right: 20px; /* Space between grid and pagination */
+}
+
+.pagination-container {
+    width: 200px; /* Set a fixed width for pagination */
+    align-self: flex-start; /* Align pagination to the top */
+}
+
+.error {
+    color: red;
+    font-size: 0.875em;
+    margin-top: 0.25em;
+}
+
+
+
+

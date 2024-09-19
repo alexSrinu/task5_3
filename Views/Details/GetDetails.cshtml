@@ -2,9 +2,12 @@
 
 @{
     ViewBag.Title = "GetDetails";
+    <a href="~/Views/_LayoutPage1.cshtml"></a>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 }
+
 
 <h2>GetDetails</h2>
 
@@ -12,22 +15,28 @@
 
 @TempData["Success"]
 
+
 <div class="container">
     <div class="row">
+
         <div class="col-md-6 col-lg-4 mx-auto">
-            <div class="form-group">
-                <label for="searchName">Search by Name:</label>
-                <input type="text" class="form-control" id="searchName" placeholder="Enter name">
+            <div class="search">
+                <div class="form-group">
+                    <label for="searchName">Search by Name:</label>
+                    <input type="text" class="form-control" id="searchName" placeholder="Enter name">
+                </div>
             </div>
-            <div class="form-group">
-                <label for="startDate">Start Date:</label>
-                <input type="date" class="form-control" id="startDate">
-                <div class="error" id="startDateError"></div>
-            </div>
-            <div class="form-group">
-                <label for="endDate">End Date:</label>
-                <input type="date" class="form-control" id="endDate">
-                <div class="error" id="endDateError"></div>
+            <div class="date">
+                <div class="form-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" class="form-control" id="startDate">
+                    <div class="error" id="startDateError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" class="form-control" id="endDate">
+                    <div class="error" id="endDateError"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -54,7 +63,7 @@
 <div class="container mt-4">
     <div class="gridContainer">
         <div id="grid"></div>
-        <table class="table table-bordered table-striped" style="width: 100%;">
+        <table class="table table-bordered table-striped" id="tb" style="width: 100%;">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -63,52 +72,57 @@
                     <th>State</th>
                     <th>City</th>
                     <th>Date</th>
+                 
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var user in Model)
                 {
-                    <tr>
-                        <td>@user.Name</td>
-                        <td>@user.Email</td>
-                        <td>@user.Mobile</td>
-                        <td>@user.StateName</td>
-                        <td>@user.CityName</td>
-                        <td>@user.CreatedOn.ToString("dd/MM/yyyy")</td>
-                        <td>
+                <tr>
+                    <td>@user.Name</td>
+                    <td>@user.Email</td>
+                    <td>@user.Mobile</td>
+                    <td>@user.StateName</td>
+                    <td>@user.CityName</td>
+                    <td>@user.CreatedOn.ToString("dd/MM/yyyy")</td>
+                   
+                   
 
-                            <a href="@Url.Action("Edit", new { id = user.Id, pageNumber = ViewBag.CurrentPage })" class="btn btn-warning btn-sm" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </a>
+                    <td>
 
-                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(@user.Id)">
-                                <i class="bi bi-trash3-fill"></i>
-                            </button>
-                        </td>
-                    </tr>
+                        <a href="@Url.Action("Edit", new { id = user.Id, pageNumber = ViewBag.CurrentPage })" class="btn btn-warning btn-sm" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                            <span class="tooltip" data-tooltip="Edit" data-tooltip-pos="up" data-tooltip-length="medium">Edit</span>
+                        </a>
+
+                        <button type="button" class="btn btn-danger btn-sm" title="Delete" onclick="confirmDelete(@user.Id, '@Url.Action("Delete", "Details")')">
+                            <i class="bi bi-trash3-fill"></i>
+                            <span class="tooltip" data-tooltip="Delete" data-tooltip-pos="up" data-tooltip-length="medium">Delete</span>
+                        </button>
+
+                    </td>
+                </tr>
                 }
             </tbody>
         </table>
     </div>
-    </div>
-    <div class="pagination-container">
-        <div id="pagination"></div>
-        <nav aria-label="Page navigation example">
-            <ul class="pagination justify-content-end">
+</div>
 
+<div class="pagination-container">
+    <div id="pagination"></div>
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-end">
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="javascript:void(0);" data-page="@i" data-total="@ViewBag.TotalPages">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
 
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                {
-                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                        <a class="page-link" href="#" onclick="loadPage(@i)">@i</a>
-                    </li>
-                }
-
-
-            </ul>
-        </nav>
-    </div>
 
 <style>
     .error {
@@ -122,7 +136,13 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    $(document).ready(function () {
+   $(document).ready(function () {
+        // Attach the CSRF token to all AJAX requests
+        $.ajaxSetup({
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            }
+        });
 
         $('.state-checkbox').on('change', function () {
             var selectedStates = $('.state-checkbox:checked').map(function () {
@@ -156,52 +176,35 @@
                 }
             });
         });
+
         $('.state-checkbox').on('change', function () {
-
-
-
             var stateId = $(this).data('state-id');
-
-
             var cityContainer = $('#city-container-' + stateId);
-
-
             if (!$(this).is(':checked')) {
-
                 cityContainer.find('.city-checkbox').prop('checked', false);
-
-
                 cityContainer.hide();
             } else {
-
                 cityContainer.show();
             }
         });
-        $('.page-link').click(function (event) {
-            console.log('pagelink', pageNumber);
-            updatePagination(pageNumber, totalPages);
 
+        $(document).on('click', '.page-link', function (event) {
+            event.preventDefault();
+            var pageNumber = $(this).data('page');
+            var totalPages = $(this).data('total');
+            loadPage(pageNumber, totalPages);
         });
-
 
         $(document).on('change', '.city-checkbox', function () {
-
             updateCityCheckboxes();
-            updatePagination(pageNumber, totalPages);
-
         });
+
         $('#searchName, #startDate, #endDate').on('input change', function () {
-            validateDates();
-            updateCityCheckboxes();
-            updatePagination(pageNumber, totalPages);
-
+            if (validateDates()) {
+                updateCityCheckboxes();
+            }
         });
-        $('#searchName').on('input chage', function () {
-            alert('success');
-            updateCityCheckboxes();
-           // updatePagination(pageNumber, totalPages);
 
-        });
         function validateDates() {
             var startDate = new Date($('#startDate').val());
             var endDate = new Date($('#endDate').val());
@@ -214,6 +217,7 @@
             }
             return true;
         }
+
         function formatDate(dateString) {
             var timestamp = parseInt(dateString.replace(/\/Date\((\d+)\)\//, '$1'));
             var date = new Date(timestamp);
@@ -222,8 +226,8 @@
             var year = date.getFullYear();
             return day + '-' + month + '-' + year;
         }
+
         function updateCityCheckboxes(pageNumber = 1, pageSize = 10) {
-            console.log(pageNumber);
             if (!validateDates()) return;
             var selectedCities = $('.city-checkbox:checked').map(function () {
                 return $(this).val();
@@ -243,7 +247,6 @@
                     pageSize: pageSize
                 },
                 success: function (response) {
-                    console.log(pageNumber);
                     var gridContainer = $('table tbody');
                     gridContainer.empty();
                     $.each(response.Det, function (index, detail) {
@@ -255,11 +258,12 @@
                             '<td>' + detail.StateName + '</td>' +
                             '<td>' + detail.CityName + '</td>' +
                             '<td>' + formatDate(detail.CreatedOn) + '</td>' +
+                           
                             '<td>' +
-                            '<a href="/Details/Edit/' + detail.Id + '" class="btn btn-warning btn-sm" title="Edit">' +
+                            '<a href="/Details/Edit/' + detail.Id + '?pageNumber=' + pageNumber + '" class="btn btn-warning btn-sm" title="Edit">' +
                             '<i class="bi bi-pencil"></i>' +
                             '</a>' +
-                            '<button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' + detail.Id + ')">' +
+                            '<button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(' + detail.Id + ', \'' + '@Url.Action("Delete", "Details")' + '\')">' +
                             '<i class="bi bi-trash3-fill"></i>' +
                             '</button>' +
                             '</td>' +
@@ -267,65 +271,74 @@
                         );
                     });
                     updatePagination(response.CurrentPage, response.TotalPages);
-
                 },
                 error: function (xhr, status, error) {
                     alert("An error occurred: " + error);
                 }
             });
         }
-        function updatePagination(pageNumber, totalPages) {
-            console.log(pageNumber);
 
+        function updatePagination(pageNumber, totalPages) {
             var paginationContainer = $('.pagination');
             paginationContainer.empty();
-
             for (var i = 1; i <= totalPages; i++) {
                 paginationContainer.append(
                     '<li class="page-item ' + (i === pageNumber ? 'active' : '') + '">' +
-                    '<a class="page-link" href="javascript:void(0);" onclick="loadPage(' + i + ')">' + i + '</a>' +
+                    '<a class="page-link" href="javascript:void(0);" data-page="' + i + '" data-total="' + totalPages + '">' + i + '</a>' +
                     '</li>'
                 );
             }
-
         }
 
-        function loadPage(pageNumber) {
-
-            console.log('Loading page:', pageNumber);
-            updatePagination(pageNumber, totalPages);
+        function loadPage(pageNumber, totalPages) {
             updateCityCheckboxes(pageNumber, 10);
-        }
-
-
-
-function confirmDelete(Id) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: '/Details/Delete',
-                type: 'POST',
-                data: { Id: Id },
-                success: function (response) {
-                    Swal.fire('Deleted!', 'The record has been deleted.', 'success');
-                    location.reload();
-                },
-                error: function (xhr, status, error) {
-                    Swal.fire('Error!', 'There was a problem deleting the user.', 'error');
-                }
-            });
-        }
-    });
-    }
-    });
-
+            updatePagination(pageNumber, totalPages);
+       }
+         });
 </script>
+
+<script>
+    function confirmDelete(id, deleteUrl) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: deleteUrl,
+                    type: 'POST',
+                    data: { Id: id },
+                    success: function (response) {
+                        console.log(response);
+                        if (!response.success) {
+                            alert('succee1');
+                            // Swal.fire('Error!', response.message || 'There was a problem deleting the user.', 'error');
+                            Swal.fire('Deleted!', 'The record has been deleted.', 'success');
+                            location.reload();
+                           
+                        } else {
+                            alert('succee2');
+                            Swal.fire('Error!', response.message || 'There was a problem deleting the user.', 'error');
+                            //  Swal.fire('Deleted!', 'The record has been deleted.', 'success');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+
+                        console.error("Error during delete request:", status, error);
+                        Swal.fire('Error!', 'There was a problem deleting the user.', 'error');
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+
+
+
 

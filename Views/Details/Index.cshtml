@@ -1,4 +1,7 @@
 ﻿@model task5.Models.Details
+    @using task5.Models
+
+   
 
 @{
     ViewBag.Title = "Index";
@@ -61,11 +64,49 @@
                                 }
                             </select>
                         </div>
-                       
+
                         <div class="form-group">
                             <label for="CreatedOn"></label>
                             @Html.TextBoxFor(model => model.CreatedOn, "{0:yyyy-MM-dd}", new { @class = "form-control hidden-field", style = "width:185px;background:E1EBF9;", @readonly = "readonly", type = "date" })
                         </div>
+                        @*<div class="form-group">
+            <label>Hobbies</label><br />
+            @foreach (var hobby in Model.Hobbies)
+            {
+                <div class="form-check">
+                    @Html.CheckBoxFor(m => hobby.IsChecked, new { @class = "form-check-input", id = "hobby_" + hobby.HobbyId })
+                    @Html.Hidden("SelectedHobbies", hobby.HobbyId)
+                    @Html.Label("hobby_" + hobby.HobbyId, hobby.HobbyName, new { @class = "form-check-label" })
+                </div>
+            }
+        </div>*@
+                        @*<div class="form-group">
+            <label>Hobbies</label><br />
+            @foreach (var hobby in Model.Hobbies)
+            {
+                <div class="form-check">
+                    @Html.CheckBox("Hobbies[" + Model.Hobbies.IndexOf(hobby) + "].IsChecked", hobby.IsChecked, new { @class = "form-check-input", id = "hobby_" + hobby.HobbyId })
+                    @Html.Hidden("Hobbies[" + Model.Hobbies.IndexOf(hobby) + "].HobbyId", hobby.HobbyId)
+                    @Html.Label("hobby_" + hobby.HobbyId, hobby.HobbyName, new { @class = "form-check-label" })
+                </div>
+            }
+        </div>*@
+                       
+
+                        <div class="form-group">
+                            <label>Hobbies</label><br />
+                            @for (int i = 0; i < Model.Hobbies.Count; i++)
+                            {
+                                var hobby = Model.Hobbies[i];
+                                <div class="form-check">
+                                    @Html.CheckBox("Hobbies[" + i + "].IsChecked", hobby.IsChecked, new { @class = "form-check-input", id = "hobby_" + hobby.HobbyId })
+                                    @Html.Hidden("Hobbies[" + i + "].HobbyId", hobby.HobbyId)
+                                    @Html.Label("hobby_" + hobby.HobbyId, hobby.HobbyName, new { @class = "form-check-label" })
+                                </div>
+                            }
+                        </div>
+
+
 
 
 
